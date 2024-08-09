@@ -15,8 +15,7 @@ const CommentFeedWrapper = styled.section`
 export default function CommentFeed(props: ICommentFeed) {
   return (
     <CommentFeedWrapper tabIndex={-1}>
-      {props.loading && <p>Fetching comments...</p>}
-      {!props.error && !props.loading ? (
+      {!props.error ? (
         props.comments.map((comment) => {
           return <Comment key={comment.id} {...comment} />;
         })

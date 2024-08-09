@@ -23,7 +23,6 @@ const CommentContainer = styled.div`
   }
   &:focus {
     background-color: #c1c6ca;
-    border-color: #c1c6ca;
     border: 2px solid lime;
     outline: 1px solid lime;
   }

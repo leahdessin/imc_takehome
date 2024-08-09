@@ -62,7 +62,6 @@ const PostButton = styled.button`
   font-family: Roboto, sans-serif;
   border: 2px solid #ed89ff;
   border-radius: 9999px;
-  margin: 0 0 30px 0;
 
   &:hover {
     cursor: pointer;
@@ -99,12 +98,15 @@ const PostToast = styled.span`
   opacity: 0;
 `;
 
-const CollapseButton = styled.span`
+const CollapseButton = styled.span<{ $collapsed?: boolean }>`
   color: #ed89ff;
   font-weight: bold;
   font-size: 12px;
   display: none;
-  padding-bottom: 10px;
+  position: relative;
+  bottom: 8px;
+  padding: 0px 10px;
+  background-color: ${(props) => (props.$collapsed ? "#330367" : "#24113f")};
 
   &:hover {
     cursor: pointer;
@@ -115,7 +117,7 @@ const CollapseButton = styled.span`
     outline: 1px solid lime;
   }
 
-  @media (max-width: 600px) {
+  @media (max-height: 700px) {
     display: inline-block;
   }
 `;
@@ -125,6 +127,13 @@ const CollapsibleSection = styled.div<{ $collapsed?: boolean }>`
   flex-flow: column nowrap;
   align-items: center;
   justify-content: flex-start;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 10px 30px;
+
+  @media (max-height: 700px) {
+    border: 2px solid #ed89ff;
+  }
 `;
 
 function validateComment(state: IComposedComment) {
@@ -264,7 +273,7 @@ export default function CommentComposer(props: { onPostComment: () => void }) {
           {showToast && <PostToast id="post_toast">{toastText}</PostToast>}
         </ButtonContainer>
       </CollapsibleSection>
-      <CollapseButton onClick={handleCollapseExpand}>
+      <CollapseButton onClick={handleCollapseExpand} $collapsed={isCollapsed}>
         {isCollapsed ? "Expand" : "Collapse"}
       </CollapseButton>
     </CommentComposerContainer>

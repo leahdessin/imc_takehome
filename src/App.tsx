@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import "typeface-roboto";
 import "./App.css";
 import styled from "styled-components";
@@ -18,10 +18,21 @@ const AppWrapper = styled.div`
   font-family: Roboto, sans-serif;
 `;
 
+const LoadingNotice = styled.div`
+  color: #ed89ff;
+  font-size: 14px;
+  height: 20px;
+  vertical-align: middle;
+`;
+
 function App() {
+  console.log("rendering App");
   const [comments, setComments] = useState<IComment[]>([]);
   const [error, setError] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [pollingEnabled, setPollingEnabled] = useState<boolean>(true);
+
+  const intervalRef = useRef<ReturnType<typeof setInterval>>();
 
   const fetchComments = useCallback(() => {
     setIsLoading(true);
@@ -34,26 +45,38 @@ function App() {
       })
       .catch((error) => {
         setError("Error fetching data from source. Please try again.");
+        setPollingEnabled(false);
       })
       .finally(() => {
-        setIsLoading(false);
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 2000);
       });
   }, []);
 
-  useEffect(() => {
-    fetchComments();
-  }, []);
-
-  function handleClearComments() {
+  const handleClearComments = useCallback(() => {
     Api.delete("/deleteComments")
       .then(() => {
         setError("");
         setComments([]);
+        setIsLoading(false);
+        setPollingEnabled(true);
       })
       .catch((error) => {
         console.log(error);
       });
-  }
+  }, []);
+
+  useEffect(() => {
+    if (pollingEnabled) {
+      intervalRef.current = setInterval(fetchComments, 5000);
+    } else {
+      clearInterval(intervalRef.current);
+    }
+    return () => {
+      clearInterval(intervalRef.current);
+    };
+  });
 
   return (
     <AppWrapper data-testid="app_wrapper">
@@ -62,7 +85,8 @@ function App() {
         <CommentComposer onPostComment={fetchComments} />
       </header>
       <main tabIndex={-1}>
-        <CommentFeed comments={comments} error={error} loading={isLoading} />
+        <LoadingNotice>{isLoading && "Fetching..."}</LoadingNotice>
+        <CommentFeed comments={comments} error={error} />
       </main>
       <footer>
         <button onClick={handleClearComments}>Clear All Comments</button>

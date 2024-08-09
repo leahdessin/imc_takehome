@@ -26,21 +26,13 @@ const mockComments: IComment[] = [
 ];
 
 test("renders a comment feed", () => {
-  render(<CommentFeed comments={mockComments} error={""} loading={false} />);
+  render(<CommentFeed comments={mockComments} error={""} />);
   const comments = screen.getAllByText(mockComments[0].message);
   expect(comments.length).toEqual(3);
 });
 test("renders an error when provided", () => {
   const errorText = "error text";
-  render(
-    <CommentFeed comments={mockComments} error={errorText} loading={false} />,
-  );
+  render(<CommentFeed comments={mockComments} error={errorText} />);
   const error = screen.getByText(errorText);
   expect(error).toBeInTheDocument();
-});
-
-test("renders loading message", () => {
-  render(<CommentFeed comments={[]} error={""} loading={true} />);
-  const loadingMessage = screen.getByText("Fetching comments...");
-  expect(loadingMessage).toBeInTheDocument();
 });
