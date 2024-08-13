@@ -1,8 +1,9 @@
-import React, { useRef, useState } from "react";
+import React, { ChangeEvent, memo, useRef, useState } from "react";
 import styled from "styled-components";
 import { keyframes } from "styled-components";
 
 import { IComposedComment } from "./types";
+import InputGroup from "../InputGroup/InputGroup";
 import { Api } from "../../api";
 
 const CommentComposerContainer = styled.form`
@@ -12,45 +13,10 @@ const CommentComposerContainer = styled.form`
   justify-content: space-around;
 `;
 
-const UsernameInput = styled.input<{ $hasError?: boolean }>`
-  width: 30vw;
-  min-width: 180px;
-  padding: 5px 8px;
-  border-radius: 9999px;
-  border-width: 2px;
-  border-style: solid;
-  border-color: ${(props) => (props.$hasError ? "#fe804d" : "black")};
-  outline: ${(props) => (props.$hasError ? "1px solid #fe804d" : "none")};
-
-  &:focus {
-    outline: 1px solid lime;
-    border-color: lime;
-  }
-`;
-
-const CommentTextarea = styled.textarea<{ $hasError?: boolean }>`
-  width: 30vw;
-  min-width: 280px;
-  height: 10vh;
-  padding: 5px;
-  border-radius: 10px;
-  border-width: 2px;
-  border-style: solid;
-  border-color: ${(props) => (props.$hasError ? "#fe804d" : "black")};
-  outline: ${(props) => (props.$hasError ? "1px solid #fe804d" : "none")};
-
-  &:focus {
-    outline: 1px solid lime;
-    border-color: lime;
-  }
-`;
-
-const ErrorNote = styled.span`
-  font-weight: bold;
-  color: #fe804d;
-  font-size: 12px;
-  height: 12px;
-  margin: 3px 0 10px;
+const ButtonContainer = styled.div`
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
 `;
 
 const PostButton = styled.button`
@@ -73,17 +39,13 @@ const PostButton = styled.button`
     outline: 1px solid lime;
   }
 `;
-const ButtonContainer = styled.div`
-  display: flex;
-  flex-flow: column nowrap;
-  align-items: center;
-`;
 
 const fadeOutAnimation = keyframes`
   0% {opacity: 1}
   50% {opacity: 1}
   100% {opacity: 0}
 `;
+
 const PostToast = styled.span`
   color: #ed89ff;
   font-weight: bold;
@@ -145,7 +107,9 @@ function validateComment(state: IComposedComment) {
   );
 }
 
-export default function CommentComposer(props: { onPostComment: () => void }) {
+const CommentComposer = memo(function CommentComposer(props: {
+  onCommentCreated: () => void;
+}) {
   const [currentComment, setCurrentComment] = useState<IComposedComment>({
     username: "",
     message: "",
@@ -155,8 +119,6 @@ export default function CommentComposer(props: { onPostComment: () => void }) {
   const [showToast, setShowToast] = useState(false);
   const [toastText, setToastText] = useState("");
   const [isCollapsed, setIsCollapsed] = useState(false);
-
-  const inputRef = useRef() as React.MutableRefObject<HTMLInputElement>;
 
   function blinkToast() {
     if (!showToast) {
@@ -183,8 +145,7 @@ export default function CommentComposer(props: { onPostComment: () => void }) {
             usernameError: "",
             messageError: "",
           });
-          props.onPostComment();
-          inputRef.current.focus();
+          props.onCommentCreated();
         })
         .catch((error) => {
           setToastText("Could not post comment. Try again.");
@@ -202,31 +163,27 @@ export default function CommentComposer(props: { onPostComment: () => void }) {
     }
   }
 
-  function handleUsernameUpdate(event: any) {
+  function handleUsernameUpdate(event: ChangeEvent) {
+    const element = event.currentTarget as HTMLInputElement;
     setCurrentComment((prevState) => {
       return {
         ...prevState,
-        username: event.target.value,
-        usernameError: event.target.value
+        username: element.value,
+        usernameError: element.value
           ? ""
           : "Please enter a non-empty username.",
       };
     });
   }
-  function handleMessageUpdate(event: any) {
+  function handleMessageUpdate(event: ChangeEvent) {
+    const element = event.currentTarget as HTMLInputElement;
     setCurrentComment((prevState) => {
       return {
         ...prevState,
-        message: event.target.value,
-        messageError: event.target.value
-          ? ""
-          : "Please enter a non-empty message.",
+        message: element.value,
+        messageError: element.value ? "" : "Please enter a non-empty message.",
       };
     });
-  }
-
-  function handleCollapseExpand() {
-    setIsCollapsed(!isCollapsed);
   }
 
   return (
@@ -238,34 +195,20 @@ export default function CommentComposer(props: { onPostComment: () => void }) {
       }}
     >
       <CollapsibleSection $collapsed={isCollapsed}>
-        <label htmlFor="username_input">Enter your username</label>
-        <UsernameInput
-          ref={inputRef}
-          data-testid="comment_name"
-          id="username_input"
-          type="text"
-          aria-required="true"
-          aria-describedby="username_error"
+        <InputGroup
+          name={"username"}
+          value={currentComment.username}
+          error={currentComment.usernameError}
           onBlur={() => validateComment(currentComment)}
           onChange={handleUsernameUpdate}
-          value={currentComment.username}
-          $hasError={Boolean(currentComment.usernameError)}
         />
-        <ErrorNote id="username_error">
-          {currentComment.usernameError}
-        </ErrorNote>
-        <label htmlFor="message_input">Enter a message</label>
-        <CommentTextarea
-          data-testid="comment_text"
-          id="message_input"
-          aria-required="true"
-          aria-describedby="message_error"
+        <InputGroup
+          name={"message"}
+          value={currentComment.message}
+          error={currentComment.messageError}
           onBlur={() => validateComment(currentComment)}
           onChange={handleMessageUpdate}
-          value={currentComment.message}
-          $hasError={Boolean(currentComment.messageError)}
         />
-        <ErrorNote id="message_error">{currentComment.messageError}</ErrorNote>
         <ButtonContainer>
           <PostButton data-testid="post_comment_button" onClick={postComment}>
             Post Comment
@@ -273,9 +216,14 @@ export default function CommentComposer(props: { onPostComment: () => void }) {
           {showToast && <PostToast id="post_toast">{toastText}</PostToast>}
         </ButtonContainer>
       </CollapsibleSection>
-      <CollapseButton onClick={handleCollapseExpand} $collapsed={isCollapsed}>
+      <CollapseButton
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        $collapsed={isCollapsed}
+      >
         {isCollapsed ? "Expand" : "Collapse"}
       </CollapseButton>
     </CommentComposerContainer>
   );
-}
+});
+
+export default CommentComposer;

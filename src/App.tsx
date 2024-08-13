@@ -26,7 +26,6 @@ const LoadingNotice = styled.div`
 `;
 
 function App() {
-  console.log("rendering App");
   const [comments, setComments] = useState<IComment[]>([]);
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -35,6 +34,7 @@ function App() {
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
 
   const fetchComments = useCallback(() => {
+    console.log("fetching comments");
     setIsLoading(true);
     Api.get("/getComments")
       .then((response) => {
@@ -68,21 +68,22 @@ function App() {
   }, []);
 
   useEffect(() => {
+    fetchComments();
     if (pollingEnabled) {
-      intervalRef.current = setInterval(fetchComments, 5000);
+      intervalRef.current = setInterval(fetchComments, 10000);
     } else {
       clearInterval(intervalRef.current);
     }
     return () => {
       clearInterval(intervalRef.current);
     };
-  });
+  }, []);
 
   return (
     <AppWrapper data-testid="app_wrapper">
       <header>
         <h1>Join the conversation</h1>
-        <CommentComposer onPostComment={fetchComments} />
+        <CommentComposer onCommentCreated={fetchComments} />
       </header>
       <main tabIndex={-1}>
         <LoadingNotice>{isLoading && "Fetching..."}</LoadingNotice>

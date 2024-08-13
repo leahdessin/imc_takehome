@@ -1,22 +1,22 @@
-import React from "react";
-import { act, render, screen } from "@testing-library/react";
+import React, { act } from "react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import CommentComposer from "./CommentComposer";
 import { Api } from "../../api";
 
 test("render the comment composer", () => {
-  render(<CommentComposer onPostComment={() => {}} />);
+  render(<CommentComposer onCommentCreated={() => {}} />);
 
   const composer = screen.getByTestId("comment_composer");
   expect(composer).toBeInTheDocument();
 });
 
 test("error should appear if username or message is empty", async () => {
-  render(<CommentComposer onPostComment={() => {}} />);
-  const postButton = screen.getByRole("button");
+  const mockonCommentCreatedFn = jest.fn();
+  render(<CommentComposer onCommentCreated={mockonCommentCreatedFn} />);
 
-  const mockOnPostCommentFn = jest.fn();
+  const postButton = screen.getByRole("button");
   const user = userEvent.setup();
 
   await act(async () => {
@@ -31,16 +31,16 @@ test("error should appear if username or message is empty", async () => {
   );
   expect(usernameErrorSpan).toBeInTheDocument();
   expect(messageErrorSpan).toBeInTheDocument();
-  expect(mockOnPostCommentFn).not.toBeCalled();
+  expect(mockonCommentCreatedFn).not.toBeCalled();
 });
 test("api post call on click with no errors", async () => {
   const user = userEvent.setup();
-  render(<CommentComposer onPostComment={() => {}} />);
+  render(<CommentComposer onCommentCreated={() => {}} />);
 
   const testUsername = "testuser";
   const testMessage = "Lorem ipsum!";
-  const usernameInput = screen.getByTestId("comment_name");
-  const messageTextarea = screen.getByTestId("comment_text");
+  const usernameInput = screen.getByTestId("comment_username");
+  const messageTextarea = screen.getByTestId("comment_message");
 
   await act(async () => {
     await user.type(usernameInput, testUsername);
