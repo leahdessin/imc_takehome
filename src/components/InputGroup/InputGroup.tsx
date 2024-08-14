@@ -1,6 +1,8 @@
 import React from "react";
 import styled from "styled-components";
 
+import { InputGroupProps } from "./types";
+
 const UsernameInput = styled.input<{ $hasError?: boolean }>`
   width: 30vw;
   min-width: 180px;
@@ -42,28 +44,39 @@ const ErrorNote = styled.span`
   margin: 3px 0 10px;
 `;
 
-export default function InputGroup(props: any) {
-  return (
-    <>
-      <label htmlFor={props.name + "_input"}>Enter your {props.name}</label>
-      {props.name === "message" ? (
+export default function InputGroup(props: InputGroupProps) {
+  // let the type system do its thing
+  if (props.isTextarea) {
+    const { isTextarea, error, ...rest } = props;
+    return (
+      <>
+        <label htmlFor={props.name + "_input"}>Enter your {props.name}</label>
         <CommentTextarea
+          id={props.name + "_input"}
           data-testid={"comment_" + props.name}
           aria-required="true"
           aria-describedby={props.name + "_error"}
           $hasError={Boolean(props.error)}
-          {...props}
+          {...rest}
         />
-      ) : (
+        <ErrorNote id={props.name + "_error"}>{props.error}</ErrorNote>
+      </>
+    );
+  } else {
+    const { isTextarea, error, ...rest } = props;
+    return (
+      <>
+        <label htmlFor={props.name + "_input"}>Enter your {props.name}</label>
         <UsernameInput
+          id={props.name + "_input"}
           data-testid={"comment_" + props.name}
           aria-required="true"
           aria-describedby={props.name + "_error"}
           $hasError={Boolean(props.error)}
-          {...props}
+          {...rest}
         />
-      )}
-      <ErrorNote id={props.name + "_error"}>{props.error}</ErrorNote>
-    </>
-  );
+        <ErrorNote id={props.name + "_error"}>{props.error}</ErrorNote>
+      </>
+    );
+  }
 }

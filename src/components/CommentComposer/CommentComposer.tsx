@@ -201,6 +201,7 @@ const CommentComposer = memo(function CommentComposer(props: {
           error={currentComment.usernameError}
           onBlur={() => validateComment(currentComment)}
           onChange={handleUsernameUpdate}
+          isTextarea={false}
         />
         <InputGroup
           name={"message"}
@@ -208,6 +209,7 @@ const CommentComposer = memo(function CommentComposer(props: {
           error={currentComment.messageError}
           onBlur={() => validateComment(currentComment)}
           onChange={handleMessageUpdate}
+          isTextarea={true}
         />
         <ButtonContainer>
           <PostButton data-testid="post_comment_button" onClick={postComment}>
